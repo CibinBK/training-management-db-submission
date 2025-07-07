@@ -12,6 +12,13 @@ CREATE TABLE Trainer (
     Phone VARCHAR(15)
 );
 
+CREATE TABLE Admin (
+    AdminID VARCHAR(10) PRIMARY KEY,
+    AdminName VARCHAR(100) NOT NULL,
+    Email VARCHAR(100),
+    Phone VARCHAR(15)
+);
+
 CREATE TABLE Course (
     CourseID VARCHAR(10) PRIMARY KEY,
     CourseName VARCHAR(100) NOT NULL

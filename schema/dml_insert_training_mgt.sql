@@ -12,6 +12,10 @@ INSERT INTO Trainer (TrainerID, TrainerName, Email, Phone) VALUES
 ('TR04', 'Diana Prince', 'diana@example.com', '9876543210'),
 ('TR05', 'Edward Norton', 'edward@example.com', '8765432109');
 
+INSERT INTO Admin (AdminID, AdminName, Email, Phone) VALUES 
+('AD01', 'Rob Jason', 'rob@example.com', '9768542310'),
+('AD02', 'Teresa Parkins', 'teresa@example.com', '2345016789');
+
 INSERT INTO Course (CourseID, CourseName) VALUES 
 ('C01', 'Java Full Stack'), 
 ('C02', 'Data Science'), 
