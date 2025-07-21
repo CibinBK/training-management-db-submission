@@ -1,0 +1,11 @@
+emp_id,first_name,last_name,email,phone,department,salary,join_date
+101,John,Doe,john.doe@example.com,9876543210,Engineering,75000,2021-06-15
+102,Jane,Smith,jane.smith@example.com,9876501234,Marketing,65000,2022-01-10
+103,Robert,Brown,robert.brown@example.com,9876512345,Sales,72000,2020-12-01
+104,Alice,Johnson,alice.johnson@example.com,9876523456,HR,60000,2023-03-20
+105,Michael,Williams,michael.williams@example.com,9876534567,Engineering,80000,2020-09-01
+106,Emily,Davis,emily.davis@example.com,9876543211,Marketing,68000,2023-11-01
+107,David,Miller,david.miller@example.com,9876501235,Engineering,78000,2021-03-25
+108,Sarah,Wilson,sarah.wilson@example.com,9876512346,Sales,70000,2022-07-18
+109,James,Moore,james.moore@example.com,9876523457,HR,62000,2024-01-05
+110,Olivia,Taylor,olivia.taylor@example.com,9876534568,Finance,71000,2022-09-12
