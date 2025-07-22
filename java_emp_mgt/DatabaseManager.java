@@ -1,3 +1,4 @@
+package com.litmus7;
 import java.sql.Connection;
 import java.sql.Date;
 import java.sql.DriverManager;
@@ -37,57 +38,81 @@ class DatabaseManager{
 			}
 	}
 	
-	public void processEmployee(String values[],int lineNumber) {
-		int employeeID;
-		double employeeSalary = 0.0;
-		Date joinDate = null;
+    static class RecordProcessResult {
+        final boolean success;
+        final String message; // Message for this specific record (success or failure)
+
+        RecordProcessResult(boolean success, String message) {
+            this.success = success;
+            this.message = message;
+        }
+    }
+
+	public RecordProcessResult processEmployee(String values[],int lineNumber) {
+		// Declare variables, will be assigned values by validator methods
+		Integer employeeID = null; // Initialize to null for error messages
+		String firstName;
+		String lastName;
+		String email;
+		String phone;
+		String department;
+		Double employeeSalary;
+		LocalDate localJoinDate;
+		Date joinDate;
 		
-		if(values.length < 8) { // validate number of fields
-			System.err.println("Error at line " + lineNumber + ": Incomplete set of data. Skipping record.");
-            return;
+		// Validate number of fields
+		if(values.length < 8) {
+			return new RecordProcessResult(false, "Line " + lineNumber + ": Incomplete set of data. Expected 8 fields, got " + values.length + ".");
 		}
 		
-		try{
-			employeeID = Integer.parseInt(values[0].trim());
-		} catch(NumberFormatException e) {
-			System.err.println("Error at line " + lineNumber + ": Invalid employee ID '" + values[0] + "'. Skipping record.");
-			return;
+		// Validate Employee ID
+		employeeID = Validator.validateEmployeeId(values[0], lineNumber);
+		if(employeeID == null) {
+			return new RecordProcessResult(false, "Line " + lineNumber + ": Invalid Employee ID. Skipping record.");
 		}
 		
+		// Check for duplicate entry based on emp_id
 		try(PreparedStatement checkStatement = connection.prepareStatement("SELECT COUNT(*) FROM employee WHERE emp_id = ?")){
 			checkStatement.setInt(1, employeeID);
 			try(ResultSet resultSet = checkStatement.executeQuery()){
 				if(resultSet.next() && resultSet.getInt(1) > 0) {
-					System.out.println("Warning at line " + lineNumber + ": Employee with ID " + employeeID + " already exists. Skipping record.");
-					return;
+					return new RecordProcessResult(false, "Line " + lineNumber + ": Employee with ID " + employeeID + " already exists (Duplicate).");
 				}
 			} 
 		} catch(SQLException e) {
-			System.err.println("Database error checking for duplicate employee ID " + employeeID + " at line " + lineNumber + ": " + e.getMessage());
-			return;
+			return new RecordProcessResult(false, "Line " + lineNumber + ": Database error checking duplicate for Emp ID " + employeeID + ": " + e.getMessage());
 		}
 		
-		String firstName = values[1].trim();
-		String lastName = values[2].trim();
-		String email = values[3].trim();
-		String phone = values[4].trim();
-		String department = values[5].trim();
+		// Validate First Name
+		firstName = Validator.validateStringField("First Name", values[1], lineNumber);
+		if(firstName == null) return new RecordProcessResult(false, "Line " + lineNumber + ": First Name is invalid. Skipping record.");
 		
-		try{
-			employeeSalary = Double.parseDouble(values[6].trim());
-			//System.out.println(employeeID + " salary is " + employeeSalary);
-		} catch(NumberFormatException e) {
-			System.err.println("Error at line " + lineNumber + ": Invalid salary '" + values[6] + "'. Skipping record.");
-            return;
-		}
+		// Validate Last Name
+		lastName = Validator.validateStringField("Last Name", values[2], lineNumber);
+		if(lastName == null) return new RecordProcessResult(false, "Line " + lineNumber + ": Last Name is invalid. Skipping record.");
 		
-		try{
-			LocalDate localJoinDate = LocalDate.parse(values[7].trim());
-			joinDate = Date.valueOf(localJoinDate);
-		} catch (java.time.format.DateTimeParseException | IllegalArgumentException e) {
-            System.err.println("Error at line " + lineNumber + ": Invalid date format '" + values[7] + "' (expected yyyy-mm-dd). Skipping record.");
-            return;
-		}
+		// Validate Email
+		email = Validator.validateEmail(values[3], lineNumber);
+		if(email == null) return new RecordProcessResult(false, "Line " + lineNumber + ": Email is invalid. Skipping record.");
+		
+		// Validate Phone
+		phone = Validator.validateStringField("Phone", values[4], lineNumber);
+		if(phone == null) return new RecordProcessResult(false, "Line " + lineNumber + ": Phone is invalid. Skipping record.");
+		
+		// Validate Department
+		department = Validator.validateStringField("Department", values[5], lineNumber);
+		if(department == null) return new RecordProcessResult(false, "Line " + lineNumber + ": Department is invalid. Skipping record.");
+		
+		// Validate Salary
+		employeeSalary = Validator.validateSalary(values[6], lineNumber);
+		if(employeeSalary == null) return new RecordProcessResult(false, "Line " + lineNumber + ": Salary is invalid. Skipping record.");
+		
+		// Validate Join Date
+		localJoinDate = Validator.validateJoinDate(values[7], lineNumber);
+		if(localJoinDate == null) return new RecordProcessResult(false, "Line " + lineNumber + ": Join Date is invalid. Skipping record.");
+		
+		// Convert LocalDate to java.sql.Date
+		joinDate = Date.valueOf(localJoinDate);
 		
 		try(PreparedStatement insertStatement = connection.prepareStatement("INSERT INTO employee (emp_id,first_name,last_name,email,phone,department,salary,join_date) VALUES (?, ?, ?,?,?,?,?,?)")) {
 			insertStatement.setInt(1, employeeID);
@@ -100,9 +125,9 @@ class DatabaseManager{
             insertStatement.setDate(8, joinDate);
 			
 			insertStatement.executeUpdate();
-			System.out.println("Successfully imported Employee ID: " + employeeID + " from line " + lineNumber);
+			return new RecordProcessResult(true, "Successfully imported Employee ID: " + employeeID);
 		} catch(SQLException e) {
-			System.err.println("Failed to insert Employee ID: " + employeeID + " from line " + lineNumber + ". Error: " + e.getMessage());
+			return new RecordProcessResult(false, "Failed to insert Employee ID: " + employeeID + " from line " + lineNumber + ". Error: " + e.getMessage());
 		}
 	}
 		
