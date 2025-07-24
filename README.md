@@ -26,10 +26,25 @@ training-management-db-submission/
 
     training-management-db-submission/
     |
-    ├─ java_emp_mgt/
-    |   └─ Employee.java
-    |   └─ EmployeeReader.java
-    |   └─ DatabaseManager.java
+    ├─ java_emp_mgt/src/com/litmus7/employeemanager/
+    |   ├─ ui/
+    |   |   └─ EmployeeManagerApp.java
+    |   ├─ dao/
+    |   |   └─ EmployeeDao.java
+    |   ├─ dto/
+    |   |   ├─ EmployeeDTO.java
+    |   |   ├─ RecordProcessResult.java
+    |   |   └─ ResponseDTO.java
+    |   ├─ property/
+    |   |   └─ DatabaseProperties.java
+    |   ├─ services/
+    |   |   └─ EmployeeManagementService.java
+    |   ├─ util/
+    |   |   ├─ CsvFileReader.java
+    |   |   └─ EmployeeValidator.java
+    |   ├─ constant/
+    |   |   ├─ AppConstants.java
+    |   |   └─ SqlConstants.java
     |   └─ employees.csv
     |
     ├─ README.md
