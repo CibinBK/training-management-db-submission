@@ -119,12 +119,12 @@ public class EmployeeManagementService {
         try {
             int rowsAffected = employeeDao.updateEmployee(connection, employee);
             if (rowsAffected > 0) {
-                return ResponseDTO.success("Employee ID " + employee.getEmpId() + " updated successfully.", rowsAffected, rowsAffected);
+                return ResponseDTO.success("Employee ID " + employee.getEmployeeId() + " updated successfully.", rowsAffected, rowsAffected);
             } else {
-                return ResponseDTO.failure("Employee with ID " + employee.getEmpId() + " not found for update (0 rows affected).", 0, null);
+                return ResponseDTO.failure("Employee with ID " + employee.getEmployeeId() + " not found for update (0 rows affected).", 0, null);
             }
         } catch (SQLException e) {
-            return ResponseDTO.failure("Database error updating employee ID " + employee.getEmpId() + ": " + e.getMessage(), 0, null);
+            return ResponseDTO.failure("Database error updating employee ID " + employee.getEmployeeId() + ": " + e.getMessage(), 0, null);
         }
     }
 

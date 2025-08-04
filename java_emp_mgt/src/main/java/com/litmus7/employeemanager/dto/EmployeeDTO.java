@@ -3,7 +3,7 @@ package com.litmus7.employeemanager.dto;
 import java.time.LocalDate;
 
 public class EmployeeDTO {
-    private final int empId;
+    private final int employeeId;
     private final String firstName;
     private final String lastName;
     private final String email;
@@ -13,9 +13,9 @@ public class EmployeeDTO {
     private final LocalDate joinDate;
 
     // Constructor for creating new EmployeeDTO objects
-    public EmployeeDTO(int empId, String firstName, String lastName, String email,
+    public EmployeeDTO(int employeeId, String firstName, String lastName, String email,
                     String phone, String department, Double salary, LocalDate joinDate) {
-        this.empId = empId;
+        this.employeeId = employeeId;
         this.firstName = firstName;
         this.lastName = lastName;
         this.email = email;
@@ -26,8 +26,8 @@ public class EmployeeDTO {
     }
 
     // Getters for all fields (no setters, making it immutable after creation)
-    public int getEmpId() {
-        return empId;
+    public int getEmployeeId() {
+        return employeeId;
     }
 
     public String getFirstName() {
@@ -60,7 +60,7 @@ public class EmployeeDTO {
 
     public String toString() {
         return "EmployeeDTO{" +
-               "empId=" + empId +
+               "empId=" + employeeId +
                ", firstName='" + firstName + '\'' +
                ", lastName='" + lastName + '\'' +
                ", email='" + email + '\'' +

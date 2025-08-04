@@ -25,9 +25,9 @@ public class EmployeeDao {
         }
     }
 
-    public int insertEmployee(Connection connection, EmployeeDTO employee) throws SQLException {
+    public int saveEmployee(Connection connection, EmployeeDTO employee) throws SQLException {
         try (PreparedStatement insertStatement = connection.prepareStatement(SqlConstants.INSERT_EMPLOYEE)) {
-            insertStatement.setInt(1, employee.getEmpId());
+            insertStatement.setInt(1, employee.getEmployeeId());
             insertStatement.setString(2, employee.getFirstName());
             insertStatement.setString(3, employee.getLastName());
             insertStatement.setString(4, employee.getEmail());
@@ -52,7 +52,7 @@ public class EmployeeDao {
                 if (resultSet.next()) {
                     Double salary = resultSet.getObject("salary", Double.class);
                     return new EmployeeDTO(
-                        resultSet.getInt("emp_id"),
+                        resultSet.getInt("employeeId"),
                         resultSet.getString("first_name"),
                         resultSet.getString("last_name"),
                         resultSet.getString("email"),
@@ -74,7 +74,7 @@ public class EmployeeDao {
                 while (resultSet.next()) {
                     Double salary = resultSet.getObject("salary", Double.class);
                     employees.add(new EmployeeDTO(
-                        resultSet.getInt("emp_id"),
+                        resultSet.getInt("employee_id"),
                         resultSet.getString("first_name"),
                         resultSet.getString("last_name"),
                         resultSet.getString("email"),
@@ -103,7 +103,7 @@ public class EmployeeDao {
                 updateStatement.setNull(6, java.sql.Types.DOUBLE);
             }
             updateStatement.setDate(7, Date.valueOf(employee.getJoinDate()));
-            updateStatement.setInt(8, employee.getEmpId());
+            updateStatement.setInt(8, employee.getEmployeeId());
 
             return updateStatement.executeUpdate();
         }
@@ -117,7 +117,7 @@ public class EmployeeDao {
     }
 
     public RecordProcessResult processEmployeeRecord(Connection connection, String values[], int lineNumber) {
-        Integer empId = null;
+        Integer employeeId = null;
         String firstName;
         String lastName;
         String email;
@@ -133,8 +133,8 @@ public class EmployeeDao {
 
         // --- 2. Validate and parse individual fields using EmployeeValidator ---
         // Validate Employee ID
-        empId = EmployeeValidator.validateEmployeeId(values[0], lineNumber);
-        if (empId == null) {
+        employeeId = EmployeeValidator.validateEmployeeId(values[0], lineNumber);
+        if (employeeId == null) {
             return new RecordProcessResult(false, "Line " + lineNumber + ": Invalid Employee ID. Skipping record.");
         }
 
@@ -166,29 +166,29 @@ public class EmployeeDao {
         joinDateLocal = EmployeeValidator.validateJoinDate(values[7], lineNumber);
         if (joinDateLocal == null) return new RecordProcessResult(false, "Line " + lineNumber + ": Join Date is invalid. Skipping record.");
         
-        // Validate Duplicate EmpID
+        // Validate Duplicate EmployeeID
         try {
-            if (isEmployeeIdExists(connection, empId)) {
-                return new RecordProcessResult(false, "Line " + lineNumber + ": Employee with ID " + empId + " already exists (Duplicate).");
+            if (isEmployeeIdExists(connection, employeeId)) {
+                return new RecordProcessResult(false, "Line " + lineNumber + ": Employee with ID " + employeeId + " already exists (Duplicate).");
             }
         } catch (SQLException e) {
-            return new RecordProcessResult(false, "Database error checking duplicate for Emp ID " + empId + " at line " + lineNumber + ": " + e.getMessage());
+            return new RecordProcessResult(false, "Database error checking duplicate for Emp ID " + employeeId + " at line " + lineNumber + ": " + e.getMessage());
         }
 
         // --- All validations passed. Create Employee DTO and insert ---
         EmployeeDTO employeeToInsert = new EmployeeDTO(
-            empId, firstName, lastName, email, phone, department, salary, joinDateLocal
+            employeeId, firstName, lastName, email, phone, department, salary, joinDateLocal
         );
 
         try {
-            int rowsAffected = insertEmployee(connection, employeeToInsert);
+            int rowsAffected = saveEmployee(connection, employeeToInsert);
             if (rowsAffected > 0) {
-                return new RecordProcessResult(true, "Successfully imported Employee ID: " + empId);
+                return new RecordProcessResult(true, "Successfully imported Employee ID: " + employeeId);
             } else {
-                return new RecordProcessResult(false, "Line " + lineNumber + ": Failed to insert Employee ID: " + empId + " (0 rows affected).");
+                return new RecordProcessResult(false, "Line " + lineNumber + ": Failed to insert Employee ID: " + employeeId + " (0 rows affected).");
             }
         } catch (SQLException e) {
-            return new RecordProcessResult(false, "Failed to insert Employee ID: " + empId + " from line " + lineNumber + ". Error: " + e.getMessage());
+            return new RecordProcessResult(false, "Failed to insert Employee ID: " + employeeId + " from line " + lineNumber + ". Error: " + e.getMessage());
         }
     }
 }

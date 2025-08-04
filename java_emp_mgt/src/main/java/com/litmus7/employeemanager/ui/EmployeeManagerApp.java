@@ -3,7 +3,7 @@ package com.litmus7.employeemanager.ui;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.SQLException;
-import java.time.LocalDate;
+//import java.time.LocalDate;
 import java.util.List;
 import com.litmus7.employeemanager.constant.AppConstants;
 import com.litmus7.employeemanager.dto.ResponseDTO;
@@ -131,7 +131,7 @@ public class EmployeeManagerApp {
                     System.out.println("--------------------------------------------------------------------------------------------------------------------------------");
                     for (EmployeeDTO emp : allEmployees) {
                         System.out.printf("%-5d %-15s %-15s %-30s %-15s %-15s %-10.2f %-12s\n",
-                                          emp.getEmpId(),
+                                          emp.getEmployeeId(),
                                           emp.getFirstName(),
                                           emp.getLastName(),
                                           emp.getEmail(),

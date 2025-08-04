@@ -22,6 +22,7 @@ training-management-db-submission/
 
 # java-emp-mgt
     It is a java application that reads data from a csv file and then inserts it into the database table. 'Employee.java' is the main class file.
+    
 ## Folder Structure
 
     training-management-db-submission/
