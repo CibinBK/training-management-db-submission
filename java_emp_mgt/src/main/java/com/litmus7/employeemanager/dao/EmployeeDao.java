@@ -1,5 +1,12 @@
 package com.litmus7.employeemanager.dao;
 
+import com.litmus7.employeemanager.constant.SqlConstants;
+import com.litmus7.employeemanager.dto.EmployeeDTO;
+import com.litmus7.employeemanager.dto.RecordProcessResult;
+import com.litmus7.employeemanager.exception.DAOException;
+import com.litmus7.employeemanager.util.DatabaseConnectionManager;
+import com.litmus7.employeemanager.util.EmployeeValidator;
+
 import java.sql.Connection;
 import java.sql.Date;
 import java.sql.PreparedStatement;
@@ -9,24 +16,23 @@ import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 
-import com.litmus7.employeemanager.constant.SqlConstants;
-import com.litmus7.employeemanager.dto.EmployeeDTO;
-import com.litmus7.employeemanager.dto.RecordProcessResult;
-import com.litmus7.employeemanager.util.EmployeeValidator;
-
 public class EmployeeDao {
 
-    public boolean isEmployeeIdExists(Connection connection, int employeeId) throws SQLException {
-        try (PreparedStatement checkStatement = connection.prepareStatement(SqlConstants.CHECK_DUPLICATE_EMPLOYEE)) {
+    public boolean isEmployeeIdExists(int employeeId) throws DAOException {
+        try (Connection connection = DatabaseConnectionManager.getConnection();
+             PreparedStatement checkStatement = connection.prepareStatement(SqlConstants.CHECK_DUPLICATE_EMPLOYEE)) {
             checkStatement.setInt(1, employeeId);
             try (ResultSet resultSet = checkStatement.executeQuery()) {
                 return resultSet.next() && resultSet.getInt(1) > 0;
             }
+        } catch (SQLException e) {
+            throw new DAOException("Error checking for duplicate employee ID " + employeeId, e);
         }
     }
 
-    public int saveEmployee(Connection connection, EmployeeDTO employee) throws SQLException {
-        try (PreparedStatement insertStatement = connection.prepareStatement(SqlConstants.INSERT_EMPLOYEE)) {
+    public int saveEmployee(EmployeeDTO employee) throws DAOException {
+        try (Connection connection = DatabaseConnectionManager.getConnection();
+             PreparedStatement insertStatement = connection.prepareStatement(SqlConstants.INSERT_EMPLOYEE)) {
             insertStatement.setInt(1, employee.getEmployeeId());
             insertStatement.setString(2, employee.getFirstName());
             insertStatement.setString(3, employee.getLastName());
@@ -41,18 +47,21 @@ public class EmployeeDao {
             }
             insertStatement.setDate(8, Date.valueOf(employee.getJoinDate()));
 
-            return insertStatement.executeUpdate(); // Returns number of rows affected
+            return insertStatement.executeUpdate();
+        } catch (SQLException e) {
+            throw new DAOException("Error saving employee " + employee.getEmployeeId(), e);
         }
     }
 
-    public EmployeeDTO findEmployeeById(Connection connection, int employeeId) throws SQLException {
-        try (PreparedStatement statement = connection.prepareStatement(SqlConstants.FIND_EMPLOYEE_BY_ID)) {
+    public EmployeeDTO findEmployeeById(int employeeId) throws DAOException {
+        try (Connection connection = DatabaseConnectionManager.getConnection();
+             PreparedStatement statement = connection.prepareStatement(SqlConstants.FIND_EMPLOYEE_BY_ID)) {
             statement.setInt(1, employeeId);
             try (ResultSet resultSet = statement.executeQuery()) {
                 if (resultSet.next()) {
                     Double salary = resultSet.getObject("salary", Double.class);
                     return new EmployeeDTO(
-                        resultSet.getInt("employeeId"),
+                        resultSet.getInt("employee_id"),
                         resultSet.getString("first_name"),
                         resultSet.getString("last_name"),
                         resultSet.getString("email"),
@@ -63,13 +72,16 @@ public class EmployeeDao {
                     );
                 }
             }
+        } catch (SQLException e) {
+            throw new DAOException("Error finding employee by ID " + employeeId, e);
         }
-        return null; // Employee not found
+        return null;
     }
 
-    public List<EmployeeDTO> findAllEmployees(Connection connection) throws SQLException {
+    public List<EmployeeDTO> findAllEmployees() throws DAOException {
         List<EmployeeDTO> employees = new ArrayList<>();
-        try (PreparedStatement statement = connection.prepareStatement(SqlConstants.FIND_ALL_EMPLOYEES)) {
+        try (Connection connection = DatabaseConnectionManager.getConnection();
+             PreparedStatement statement = connection.prepareStatement(SqlConstants.FIND_ALL_EMPLOYEES)) {
             try (ResultSet resultSet = statement.executeQuery()) {
                 while (resultSet.next()) {
                     Double salary = resultSet.getObject("salary", Double.class);
@@ -85,12 +97,15 @@ public class EmployeeDao {
                     ));
                 }
             }
+        } catch (SQLException e) {
+            throw new DAOException("Error finding all employees", e);
         }
         return employees;
     }
 
-    public int updateEmployee(Connection connection, EmployeeDTO employee) throws SQLException {
-        try (PreparedStatement updateStatement = connection.prepareStatement(SqlConstants.UPDATE_EMPLOYEE)) {
+    public int updateEmployee(EmployeeDTO employee) throws DAOException {
+        try (Connection connection = DatabaseConnectionManager.getConnection();
+             PreparedStatement updateStatement = connection.prepareStatement(SqlConstants.UPDATE_EMPLOYEE)) {
             updateStatement.setString(1, employee.getFirstName());
             updateStatement.setString(2, employee.getLastName());
             updateStatement.setString(3, employee.getEmail());
@@ -106,17 +121,22 @@ public class EmployeeDao {
             updateStatement.setInt(8, employee.getEmployeeId());
 
             return updateStatement.executeUpdate();
+        } catch (SQLException e) {
+            throw new DAOException("Error updating employee " + employee.getEmployeeId(), e);
         }
     }
 
-    public int deleteEmployee(Connection connection, int employeeId) throws SQLException {
-        try (PreparedStatement deleteStatement = connection.prepareStatement(SqlConstants.DELETE_EMPLOYEE)) {
+    public int deleteEmployee(int employeeId) throws DAOException {
+        try (Connection connection = DatabaseConnectionManager.getConnection();
+             PreparedStatement deleteStatement = connection.prepareStatement(SqlConstants.DELETE_EMPLOYEE)) {
             deleteStatement.setInt(1, employeeId);
             return deleteStatement.executeUpdate();
+        } catch (SQLException e) {
+            throw new DAOException("Error deleting employee with ID " + employeeId, e);
         }
     }
 
-    public RecordProcessResult processEmployeeRecord(Connection connection, String values[], int lineNumber) {
+    public RecordProcessResult processEmployeeRecord(Connection connection, String values[], int lineNumber) throws DAOException {
         Integer employeeId = null;
         String firstName;
         String lastName;
@@ -126,69 +146,62 @@ public class EmployeeDao {
         Double salary;
         LocalDate joinDateLocal;
 
-        // --- 1. Validate number of fields ---
         if (values.length < 8) {
             return new RecordProcessResult(false, "Line " + lineNumber + ": Incomplete set of data. Expected 8 fields, got " + values.length + ".");
         }
 
-        // --- 2. Validate and parse individual fields using EmployeeValidator ---
-        // Validate Employee ID
         employeeId = EmployeeValidator.validateEmployeeId(values[0], lineNumber);
-        if (employeeId == null) {
-            return new RecordProcessResult(false, "Line " + lineNumber + ": Invalid Employee ID. Skipping record.");
-        }
-
-        // Validate First Name
+        if (employeeId == null) return new RecordProcessResult(false, "Line " + lineNumber + ": Invalid Employee ID. Skipping record.");
         firstName = EmployeeValidator.validateStringField("First Name", values[1], lineNumber);
         if (firstName == null) return new RecordProcessResult(false, "Line " + lineNumber + ": First Name is invalid. Skipping record.");
-
-        // Validate Last Name
         lastName = EmployeeValidator.validateStringField("Last Name", values[2], lineNumber);
         if (lastName == null) return new RecordProcessResult(false, "Line " + lineNumber + ": Last Name is invalid. Skipping record.");
-
-        // Validate Email
         email = EmployeeValidator.validateEmail(values[3], lineNumber);
         if (email == null) return new RecordProcessResult(false, "Line " + lineNumber + ": Email is invalid. Skipping record.");
-
-        // Validate Phone
         phone = EmployeeValidator.validatePhoneNumber(values[4], lineNumber);
         if (phone == null) return new RecordProcessResult(false, "Line " + lineNumber + ": Phone is invalid. Skipping record.");
-
-        // Validate Department
         department = EmployeeValidator.validateStringField("Department", values[5], lineNumber);
         if (department == null) return new RecordProcessResult(false, "Line " + lineNumber + ": Department is invalid. Skipping record.");
-
-        // Validate Salary
         salary = EmployeeValidator.validateSalary(values[6], lineNumber);
         if (salary == null) return new RecordProcessResult(false, "Line " + lineNumber + ": Salary is invalid. Skipping record.");
-
-        // Validate Join Date
         joinDateLocal = EmployeeValidator.validateJoinDate(values[7], lineNumber);
         if (joinDateLocal == null) return new RecordProcessResult(false, "Line " + lineNumber + ": Join Date is invalid. Skipping record.");
         
-        // Validate Duplicate EmployeeID
         try {
-            if (isEmployeeIdExists(connection, employeeId)) {
+            if (isEmployeeIdExists(employeeId)) {
                 return new RecordProcessResult(false, "Line " + lineNumber + ": Employee with ID " + employeeId + " already exists (Duplicate).");
             }
-        } catch (SQLException e) {
-            return new RecordProcessResult(false, "Database error checking duplicate for Emp ID " + employeeId + " at line " + lineNumber + ": " + e.getMessage());
+        } catch (DAOException e) {
+             throw new DAOException("Database error checking for duplicate employee ID " + employeeId, e);
         }
 
-        // --- All validations passed. Create Employee DTO and insert ---
         EmployeeDTO employeeToInsert = new EmployeeDTO(
             employeeId, firstName, lastName, email, phone, department, salary, joinDateLocal
         );
 
         try {
-            int rowsAffected = saveEmployee(connection, employeeToInsert);
+            PreparedStatement insertStatement = connection.prepareStatement(SqlConstants.INSERT_EMPLOYEE);
+            insertStatement.setInt(1, employeeToInsert.getEmployeeId());
+            insertStatement.setString(2, employeeToInsert.getFirstName());
+            insertStatement.setString(3, employeeToInsert.getLastName());
+            insertStatement.setString(4, employeeToInsert.getEmail());
+            insertStatement.setString(5, employeeToInsert.getPhone());
+            insertStatement.setString(6, employeeToInsert.getDepartment());
+            if (employeeToInsert.getSalary() != null) {
+                insertStatement.setDouble(7, employeeToInsert.getSalary());
+            } else {
+                insertStatement.setNull(7, java.sql.Types.DOUBLE);
+            }
+            insertStatement.setDate(8, Date.valueOf(employeeToInsert.getJoinDate()));
+            int rowsAffected = insertStatement.executeUpdate();
+
             if (rowsAffected > 0) {
                 return new RecordProcessResult(true, "Successfully imported Employee ID: " + employeeId);
             } else {
                 return new RecordProcessResult(false, "Line " + lineNumber + ": Failed to insert Employee ID: " + employeeId + " (0 rows affected).");
             }
         } catch (SQLException e) {
-            return new RecordProcessResult(false, "Failed to insert Employee ID: " + employeeId + " from line " + lineNumber + ". Error: " + e.getMessage());
+            throw new DAOException("Failed to insert Employee ID: " + employeeId + " from line " + lineNumber, e);
         }
     }
 }
