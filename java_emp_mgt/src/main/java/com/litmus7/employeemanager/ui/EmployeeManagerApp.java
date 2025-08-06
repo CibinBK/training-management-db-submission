@@ -4,7 +4,10 @@ import com.litmus7.employeemanager.constant.AppConstants;
 import com.litmus7.employeemanager.controller.EmployeeController;
 import com.litmus7.employeemanager.dto.EmployeeDTO;
 import com.litmus7.employeemanager.dto.ResponseDTO;
+import java.time.LocalDate;
+import java.util.Arrays;
 import java.util.List;
+import java.util.Scanner;
 
 public class EmployeeManagerApp {
 
@@ -12,49 +15,117 @@ public class EmployeeManagerApp {
 
         EmployeeController controller = new EmployeeController();
 
-        // 1. Import Employees from CSV
+        // 1. IMPORT EMPLOYEES FROM CSV
         System.out.println("\n----- Running Employee Import -----");
         ResponseDTO<List<String>> importResponse = controller.importEmployees(AppConstants.CSV_FILE_PATH);
+        printImportResponse(importResponse);
         
-        if (importResponse.getStatusCode() == AppConstants.STATUS_CODE_SUCCESS) {
-            System.out.println("Import Successful: " + importResponse.getMessage());
-            System.out.println("Total Employees Imported: " + importResponse.getAffectedCount());
-        } else if (importResponse.getStatusCode() == AppConstants.STATUS_CODE_PARTIAL_SUCCESS) {
-            System.out.println("Import Partially Successful: " + importResponse.getMessage());
-            System.out.println("Employees Imported: " + importResponse.getAffectedCount());
+        // 2. ADD A NEW EMPLOYEE
+        System.out.println("\n----- Employee Addition -----");
+        EmployeeDTO newEmployee = new EmployeeDTO(
+            104, "Peter", "Parker", "peter.parker@example.com", "1112223333",
+            "IT", 60000.00, LocalDate.of(2023, 5, 20)
+        );
+        ResponseDTO<Integer> addResponse = controller.addEmployee(newEmployee);
+        System.out.println("Adding Employee ID " + newEmployee.getEmployeeId() + ": " + addResponse.getMessage());
+
+        // 3. FETCH MULTIPLE EMPLOYEES
+        System.out.println("\n----- Fetching Multiple Employees (IDs 101, 104) -----");
+        List<Integer> idsToFetch = Arrays.asList(101, 104);
+        ResponseDTO<List<EmployeeDTO>> fetchByIdsResponse = controller.getEmployeesByIds(idsToFetch);
+        printEmployeeListResponse(fetchByIdsResponse);
+
+        // 4. FETCH AND DELETE LOGIC
+        System.out.println("\n----- Fetch and Delete -----");
+        
+        // Fetch an existing employee
+        int fetchId = 101;
+        ResponseDTO<EmployeeDTO> fetchResponse = controller.getEmployeeById(fetchId);
+        System.out.println("Fetching Employee ID " + fetchId + ": " + fetchResponse.getMessage());
+
+        // Fetch a non-existent employee
+        int fetchNonExistentId = 999;
+        ResponseDTO<EmployeeDTO> fetchNonExistentResponse = controller.getEmployeeById(fetchNonExistentId);
+        System.out.println("Fetching Employee ID " + fetchNonExistentId + ": " + fetchNonExistentResponse.getMessage());
+
+        // Delete an existing employee
+        int deleteId = 102;
+        ResponseDTO<Integer> deleteResponse = controller.deleteEmployee(deleteId);
+        System.out.println("Deleting Employee ID " + deleteId + ": " + deleteResponse.getMessage());
+
+        // 5. UPDATE EMPLOYEE
+        System.out.println("\n----- Update -----");
+        try (Scanner scanner = new Scanner(System.in)) {
+            EmployeeDTO nonExistentEmployee = new EmployeeDTO(
+                999, "New", "Employee", "new.employee@example.com", "1234567890",
+                "IT", 55000.00, LocalDate.of(2025, 1, 1)
+            );
+            
+            ResponseDTO<Integer> updateResponse = controller.updateEmployee(nonExistentEmployee);
+            
+            if (updateResponse.isFailure()) {
+                System.out.println(updateResponse.getMessage());
+                System.out.print("This employee does not exist. Do you want to add them? (yes/no): ");
+                String userResponse = scanner.nextLine().trim();
+                
+                if ("yes".equalsIgnoreCase(userResponse)) {
+                    ResponseDTO<Integer> addResponse2 = controller.addEmployee(nonExistentEmployee);
+                    if (addResponse2.isSuccess()) {
+                        System.out.println(addResponse2.getMessage());
+                    } else {
+                        System.err.println("Failed to add employee: " + addResponse2.getMessage());
+                    }
+                } else {
+                    System.out.println("Employee was not added.");
+                }
+            } else {
+                System.out.println(updateResponse.getMessage());
+            }
+        }
+
+        // 6. FETCH ALL EMPLOYEES
+        System.out.println("\n----- Fetching All Employees -----");
+        ResponseDTO<List<EmployeeDTO>> fetchAllResponse = controller.findAllEmployees();
+        printEmployeeListResponse(fetchAllResponse);
+        
+        System.out.println("\nApplication: Program execution finished.");
+    }
+
+    private static void printImportResponse(ResponseDTO<List<String>> response) {
+        if (response.getStatusCode() == AppConstants.STATUS_CODE_SUCCESS) {
+            System.out.println("Import Successful: " + response.getMessage());
+            System.out.println("Total Employees Imported: " + response.getAffectedCount());
+        } else if (response.getStatusCode() == AppConstants.STATUS_CODE_PARTIAL_SUCCESS) {
+            System.out.println("Import Partially Successful: " + response.getMessage());
+            System.out.println("Employees Imported: " + response.getAffectedCount());
             System.out.println("Failed/Skipped Records Details:");
-            if (importResponse.getData() instanceof List) {
-                List<String> errors = (List<String>) importResponse.getData();
-                for (String error : errors) {
+            if (response.getData() != null && !response.getData().isEmpty()) {
+                for (String error : response.getData()) {
                     System.out.println("  - " + error);
                 }
             }
         } else {
-            // This is where the new error messages from our exceptions will be printed.
-            System.err.println("Import Failed: " + importResponse.getMessage());
-            System.err.println("Employees Imported Before Failure: " + importResponse.getAffectedCount());
+            System.err.println("Import Failed: " + response.getMessage());
             System.err.println("Failure Details:");
-            if (importResponse.getData() instanceof List) {
-                List<String> errors = (List<String>) importResponse.getData();
-                for (String error : errors) {
-                    System.err.println("  - " + error);
+            if (response.getData() != null && !response.getData().isEmpty()) {
+                for (String error : response.getData()) {
+                    System.out.println("  - " + error);
                 }
             }
         }
+    }
 
-        // 5. Fetch All Employees
-        System.out.println("\n----- Fetching All Employees -----");
-        ResponseDTO<List<EmployeeDTO>> fetchAllResponse = controller.findAllEmployees();
-        if (fetchAllResponse.isSuccess()) {
-            System.out.println("Fetch All Successful: " + fetchAllResponse.getMessage());
-            List<EmployeeDTO> allEmployees = fetchAllResponse.getData();
-            if (allEmployees != null && !allEmployees.isEmpty()) {
-                System.out.println("--- All Employees List (" + allEmployees.size() + ") ---");
+    private static void printEmployeeListResponse(ResponseDTO<List<EmployeeDTO>> response) {
+        if (response.isSuccess()) {
+            System.out.println("Fetch Successful: " + response.getMessage());
+            List<EmployeeDTO> employees = response.getData();
+            if (employees != null && !employees.isEmpty()) {
+                System.out.println("--- Employees List (" + employees.size() + ") ---");
                 
                 System.out.printf("%-5s %-15s %-15s %-30s %-15s %-15s %-10s %-12s\n",
                                   "ID", "First Name", "Last Name", "Email", "Phone", "Dept", "Salary", "Join Date");
                 System.out.println("--------------------------------------------------------------------------------------------------------------------------------");
-                for (EmployeeDTO emp : allEmployees) {
+                for (EmployeeDTO emp : employees) {
                     System.out.printf("%-5d %-15s %-15s %-30s %-15s %-15s %-10.2f %-12s\n",
                                       emp.getEmployeeId(),
                                       emp.getFirstName(),
@@ -70,10 +141,7 @@ public class EmployeeManagerApp {
                 System.out.println("No employees found.");
             }
         } else {
-            // This is where error messages from new exceptions for the findAllEmployees method will be printed.
-            System.err.println("Fetch All Failed: " + fetchAllResponse.getMessage());
+            System.err.println("Fetch Failed: " + response.getMessage());
         }
-        
-        System.out.println("\nApplication: Program execution finished.");
     }
 }

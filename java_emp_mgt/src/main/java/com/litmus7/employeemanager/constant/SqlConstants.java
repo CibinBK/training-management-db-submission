@@ -7,6 +7,9 @@ public final class SqlConstants {
 
     public static final String CHECK_DUPLICATE_EMPLOYEE =
             "SELECT COUNT(*) FROM employee WHERE employee_id = ?";
+    
+    public static final String FIND_EMPLOYEES_BY_IDS =
+            "SELECT employee_id, first_name, last_name, email, phone, department, salary, join_date FROM employee WHERE employee_id IN (?)";
 
     public static final String FIND_EMPLOYEE_BY_ID =
             "SELECT employee_id, first_name, last_name, email, phone, department, salary, join_date FROM employee WHERE employee_id = ?";

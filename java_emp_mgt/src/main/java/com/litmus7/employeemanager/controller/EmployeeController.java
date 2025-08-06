@@ -6,7 +6,6 @@ import com.litmus7.employeemanager.exception.EmployeeNotFoundException;
 import com.litmus7.employeemanager.exception.ServiceException;
 import com.litmus7.employeemanager.services.EmployeeManagementService;
 import com.litmus7.employeemanager.util.EmployeeValidator;
-
 import java.io.File;
 import java.util.List;
 import java.util.AbstractMap.SimpleEntry;
@@ -17,6 +16,22 @@ public class EmployeeController {
 
     public EmployeeController() {
         this.service = new EmployeeManagementService();
+    }
+    
+    public ResponseDTO<Integer> addEmployee(EmployeeDTO employee) {
+        if (employee == null || employee.getEmployeeId() <= 0) {
+            return ResponseDTO.failure("Invalid employee data provided for addition.", 0, null);
+        }
+        ResponseDTO<String> validationResponse = validateEmployeeDTO(employee);
+        if (validationResponse.isFailure()) {
+            return ResponseDTO.failure(validationResponse.getMessage(), 0, null);
+        }
+        try {
+            int rowsAffected = service.addEmployee(employee);
+            return ResponseDTO.success("Employee ID " + employee.getEmployeeId() + " added successfully.", rowsAffected, rowsAffected);
+        } catch (ServiceException e) {
+            return ResponseDTO.failure("A service error occurred while adding employee ID " + employee.getEmployeeId() + ": " + e.getMessage(), 0, null);
+        }
     }
 
     public ResponseDTO<List<String>> importEmployees(String filePath) {
@@ -35,6 +50,23 @@ public class EmployeeController {
             return ResponseDTO.createOverallResponse(totalRecordsAttempted, successfulCount, errors);
         } catch (ServiceException e) {
             return ResponseDTO.failure("An unexpected error occurred during import: " + e.getMessage(), 0, null);
+        }
+    }
+    
+    // New method to get employees by a list of IDs
+    public ResponseDTO<List<EmployeeDTO>> getEmployeesByIds(List<Integer> employeeIds) {
+        if (employeeIds == null || employeeIds.isEmpty()) {
+            return ResponseDTO.failure("No employee IDs provided.", 0, null);
+        }
+        
+        try {
+            List<EmployeeDTO> employees = service.getEmployeesByIds(employeeIds);
+            if (employees.isEmpty()) {
+                return ResponseDTO.failure("No employees found for the provided IDs.", 0, null);
+            }
+            return ResponseDTO.success("Employees found successfully.", employees.size(), employees);
+        } catch (ServiceException e) {
+            return ResponseDTO.failure("A service error occurred while fetching employees: " + e.getMessage(), 0, null);
         }
     }
     
@@ -66,7 +98,7 @@ public class EmployeeController {
             int rowsAffected = service.updateEmployee(employee);
             return ResponseDTO.success("Employee ID " + employee.getEmployeeId() + " updated successfully.", rowsAffected, rowsAffected);
         } catch (EmployeeNotFoundException e) {
-            return ResponseDTO.failure(e.getMessage(), 0, null);
+            return ResponseDTO.failure("Employee with ID " + employee.getEmployeeId() + " not found for update.", 0, null);
         } catch (ServiceException e) {
             return ResponseDTO.failure("A service error occurred while updating employee ID " + employee.getEmployeeId() + ": " + e.getMessage(), 0, null);
         }

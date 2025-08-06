@@ -8,12 +8,12 @@ import com.litmus7.employeemanager.exception.EmployeeNotFoundException;
 import com.litmus7.employeemanager.exception.ServiceException;
 import com.litmus7.employeemanager.util.CsvFileReader;
 import com.litmus7.employeemanager.util.DatabaseConnectionManager;
-
 import java.io.IOException;
 import java.sql.Connection;
 import java.sql.SQLException;
 import java.util.AbstractMap.SimpleEntry;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 public class EmployeeManagementService {
@@ -22,6 +22,17 @@ public class EmployeeManagementService {
 
     public EmployeeManagementService() {
         this.employeeDao = new EmployeeDao();
+    }
+    
+    public int addEmployee(EmployeeDTO employee) throws ServiceException {
+        try {
+            if (employeeDao.isEmployeeIdExists(employee.getEmployeeId())) {
+                throw new ServiceException("Employee with ID " + employee.getEmployeeId() + " already exists.");
+            }
+            return employeeDao.saveEmployee(employee);
+        } catch (DAOException e) {
+            throw new ServiceException("Database error adding employee ID " + employee.getEmployeeId(), e);
+        }
     }
 
     public SimpleEntry<Integer, List<String>> importEmployees(String filePath) throws ServiceException {
@@ -86,6 +97,19 @@ public class EmployeeManagementService {
         
         return new SimpleEntry<>(successfulEntries, detailedErrorMessages);
     }
+    
+    // New method to get multiple employees by their IDs
+    public List<EmployeeDTO> getEmployeesByIds(List<Integer> employeeIds) throws ServiceException {
+        if (employeeIds == null || employeeIds.isEmpty()) {
+            return Collections.emptyList();
+        }
+        try {
+            List<EmployeeDTO> employees = employeeDao.findEmployeesByIds(employeeIds);
+            return employees != null ? employees : Collections.emptyList();
+        } catch (DAOException e) {
+            throw new ServiceException("Database error fetching employees by IDs: " + e.getMessage(), e);
+        }
+    }
 
     public EmployeeDTO getEmployeeById(int employeeId) throws ServiceException, EmployeeNotFoundException {
         try {
@@ -127,8 +151,6 @@ public class EmployeeManagementService {
         try {
             List<EmployeeDTO> employees = employeeDao.findAllEmployees();
             if (employees == null) {
-                // This scenario might indicate a logical error or a weird database state
-                // It's good to have a check here even if it's unlikely to happen.
                 throw new ServiceException("Failed to fetch all employees: Result was null.");
             }
             return employees;

@@ -6,7 +6,6 @@ import com.litmus7.employeemanager.dto.RecordProcessResult;
 import com.litmus7.employeemanager.exception.DAOException;
 import com.litmus7.employeemanager.util.DatabaseConnectionManager;
 import com.litmus7.employeemanager.util.EmployeeValidator;
-
 import java.sql.Connection;
 import java.sql.Date;
 import java.sql.PreparedStatement;
@@ -15,21 +14,12 @@ import java.sql.SQLException;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
+import java.util.Collections;
 
 public class EmployeeDao {
 
-    public boolean isEmployeeIdExists(int employeeId) throws DAOException {
-        try (Connection connection = DatabaseConnectionManager.getConnection();
-             PreparedStatement checkStatement = connection.prepareStatement(SqlConstants.CHECK_DUPLICATE_EMPLOYEE)) {
-            checkStatement.setInt(1, employeeId);
-            try (ResultSet resultSet = checkStatement.executeQuery()) {
-                return resultSet.next() && resultSet.getInt(1) > 0;
-            }
-        } catch (SQLException e) {
-            throw new DAOException("Error checking for duplicate employee ID " + employeeId, e);
-        }
-    }
-
+    // Helper method to save an employee
     public int saveEmployee(EmployeeDTO employee) throws DAOException {
         try (Connection connection = DatabaseConnectionManager.getConnection();
              PreparedStatement insertStatement = connection.prepareStatement(SqlConstants.INSERT_EMPLOYEE)) {
@@ -51,6 +41,57 @@ public class EmployeeDao {
         } catch (SQLException e) {
             throw new DAOException("Error saving employee " + employee.getEmployeeId(), e);
         }
+    }
+
+    public boolean isEmployeeIdExists(int employeeId) throws DAOException {
+        try (Connection connection = DatabaseConnectionManager.getConnection();
+             PreparedStatement checkStatement = connection.prepareStatement(SqlConstants.CHECK_DUPLICATE_EMPLOYEE)) {
+            checkStatement.setInt(1, employeeId);
+            try (ResultSet resultSet = checkStatement.executeQuery()) {
+                return resultSet.next() && resultSet.getInt(1) > 0;
+            }
+        } catch (SQLException e) {
+            throw new DAOException("Error checking for duplicate employee ID " + employeeId, e);
+        }
+    }
+    
+    // New method to find employees by a list of IDs
+    public List<EmployeeDTO> findEmployeesByIds(List<Integer> employeeIds) throws DAOException {
+        if (employeeIds == null || employeeIds.isEmpty()) {
+            return Collections.emptyList();
+        }
+        
+        List<EmployeeDTO> employees = new ArrayList<>();
+        // Dynamically build the SQL query with IN clause placeholders
+        String placeholders = employeeIds.stream().map(id -> "?").collect(Collectors.joining(","));
+        String sql = SqlConstants.FIND_EMPLOYEES_BY_IDS.replace("?", placeholders);
+
+        try (Connection connection = DatabaseConnectionManager.getConnection();
+             PreparedStatement statement = connection.prepareStatement(sql)) {
+            
+            for (int i = 0; i < employeeIds.size(); i++) {
+                statement.setInt(i + 1, employeeIds.get(i));
+            }
+            
+            try (ResultSet resultSet = statement.executeQuery()) {
+                while (resultSet.next()) {
+                    Double salary = resultSet.getObject("salary", Double.class);
+                    employees.add(new EmployeeDTO(
+                        resultSet.getInt("employee_id"),
+                        resultSet.getString("first_name"),
+                        resultSet.getString("last_name"),
+                        resultSet.getString("email"),
+                        resultSet.getString("phone"),
+                        resultSet.getString("department"),
+                        salary,
+                        resultSet.getDate("join_date").toLocalDate()
+                    ));
+                }
+            }
+        } catch (SQLException e) {
+            throw new DAOException("Error finding employees by IDs", e);
+        }
+        return employees;
     }
 
     public EmployeeDTO findEmployeeById(int employeeId) throws DAOException {
@@ -77,7 +118,7 @@ public class EmployeeDao {
         }
         return null;
     }
-
+    
     public List<EmployeeDTO> findAllEmployees() throws DAOException {
         List<EmployeeDTO> employees = new ArrayList<>();
         try (Connection connection = DatabaseConnectionManager.getConnection();
