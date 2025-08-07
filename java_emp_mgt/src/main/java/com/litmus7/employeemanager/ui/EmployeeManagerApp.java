@@ -8,6 +8,7 @@ import java.time.LocalDate;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Scanner;
+import java.util.ArrayList;
 
 public class EmployeeManagerApp {
 
@@ -20,44 +21,58 @@ public class EmployeeManagerApp {
         ResponseDTO<List<String>> importResponse = controller.importEmployees(AppConstants.CSV_FILE_PATH);
         printImportResponse(importResponse);
         
-        // 2. ADD A NEW EMPLOYEE
-        System.out.println("\n----- Employee Addition -----");
+        // 2. DIRECTLY ADD A NEW EMPLOYEE (Single)
+        System.out.println("\n----- Employee Addition (Single) -----");
         EmployeeDTO newEmployee = new EmployeeDTO(
-            104, "Peter", "Parker", "peter.parker@example.com", "1112223333",
+            111, "Peter", "Parker", "peter.parker@example.com", "1112223333",
             "IT", 60000.00, LocalDate.of(2023, 5, 20)
         );
         ResponseDTO<Integer> addResponse = controller.addEmployee(newEmployee);
         System.out.println("Adding Employee ID " + newEmployee.getEmployeeId() + ": " + addResponse.getMessage());
 
-        // 3. FETCH MULTIPLE EMPLOYEES
+        // 3. BATCH ADD MULTIPLE EMPLOYEES
+        System.out.println("\n----- Employee Addition (Batch) -----");
+        List<EmployeeDTO> employeesToAdd = new ArrayList<>();
+        employeesToAdd.add(new EmployeeDTO(112, "Diana", "Prince", "diana.prince@example.com", "1112224444", "Marketing", 75000.00, LocalDate.of(2023, 8, 1)));
+        employeesToAdd.add(new EmployeeDTO(113, "Bruce", "Wayne", "bruce.wayne@example.com", "1112225555", "Engineering", 90000.00, LocalDate.of(2023, 8, 2)));
+        
+        ResponseDTO<int[]> batchResponse = controller.addEmployeesInBatch(employeesToAdd);
+        printBatchResponse(batchResponse);
+        
+        // 4. TRANSFER DEPARTMENT (TRANSACTION)
+        System.out.println("\n----- Department Transfer -----");
+
+        // Successful Transfer
+        System.out.println("-> Attempting a successful transfer for IDs 101, 103 to 'New Dept'");
+        List<Integer> successfulTransferIds = Arrays.asList(101, 103);
+        ResponseDTO<int[]> transferResponseSuccess = controller.transferEmployeesToDepartment(successfulTransferIds, "New Dept");
+        printBatchResponse(transferResponseSuccess);
+
+
+        // 5. FETCH MULTIPLE EMPLOYEES
         System.out.println("\n----- Fetching Multiple Employees (IDs 101, 104) -----");
         List<Integer> idsToFetch = Arrays.asList(101, 104);
         ResponseDTO<List<EmployeeDTO>> fetchByIdsResponse = controller.getEmployeesByIds(idsToFetch);
         printEmployeeListResponse(fetchByIdsResponse);
 
-        // 4. FETCH AND DELETE LOGIC
-        System.out.println("\n----- Fetch and Delete -----");
+        // 6. FETCH AND DELETE LOGIC
+        System.out.println("\n----- Demonstrating Fetch and Delete Logic -----");
         
-        // Fetch an existing employee
+        // Fetch an existing employee (e.g., ID 101)
         int fetchId = 101;
         ResponseDTO<EmployeeDTO> fetchResponse = controller.getEmployeeById(fetchId);
         System.out.println("Fetching Employee ID " + fetchId + ": " + fetchResponse.getMessage());
 
-        // Fetch a non-existent employee
-        int fetchNonExistentId = 999;
-        ResponseDTO<EmployeeDTO> fetchNonExistentResponse = controller.getEmployeeById(fetchNonExistentId);
-        System.out.println("Fetching Employee ID " + fetchNonExistentId + ": " + fetchNonExistentResponse.getMessage());
-
-        // Delete an existing employee
+        // Delete an existing employee (e.g., ID 102)
         int deleteId = 102;
         ResponseDTO<Integer> deleteResponse = controller.deleteEmployee(deleteId);
         System.out.println("Deleting Employee ID " + deleteId + ": " + deleteResponse.getMessage());
 
-        // 5. UPDATE EMPLOYEE
-        System.out.println("\n----- Update -----");
+        // 7. UPDATE LOGIC
+        System.out.println("\n----- Update Logic -----");
         try (Scanner scanner = new Scanner(System.in)) {
             EmployeeDTO nonExistentEmployee = new EmployeeDTO(
-                999, "New", "Employee", "new.employee@example.com", "1234567890",
+                999, "Dean", "Jacob", "dean.jacob@example.com", "1234567890",
                 "IT", 55000.00, LocalDate.of(2025, 1, 1)
             );
             
@@ -83,7 +98,7 @@ public class EmployeeManagerApp {
             }
         }
 
-        // 6. FETCH ALL EMPLOYEES
+        // 8. FETCH ALL EMPLOYEES
         System.out.println("\n----- Fetching All Employees -----");
         ResponseDTO<List<EmployeeDTO>> fetchAllResponse = controller.findAllEmployees();
         printEmployeeListResponse(fetchAllResponse);
@@ -109,9 +124,18 @@ public class EmployeeManagerApp {
             System.err.println("Failure Details:");
             if (response.getData() != null && !response.getData().isEmpty()) {
                 for (String error : response.getData()) {
-                    System.out.println("  - " + error);
+                    System.err.println("  - " + error);
                 }
             }
+        }
+    }
+    
+    private static void printBatchResponse(ResponseDTO<int[]> response) {
+        if (response.isSuccess()) {
+            System.out.println("Status: " + response.getMessage());
+            System.out.println("Successful updates/inserts: " + response.getAffectedCount());
+        } else {
+            System.err.println("Batch operation failed: " + response.getMessage());
         }
     }
 

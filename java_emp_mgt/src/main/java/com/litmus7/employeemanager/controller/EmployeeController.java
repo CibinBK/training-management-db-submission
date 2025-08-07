@@ -6,6 +6,7 @@ import com.litmus7.employeemanager.exception.EmployeeNotFoundException;
 import com.litmus7.employeemanager.exception.ServiceException;
 import com.litmus7.employeemanager.services.EmployeeManagementService;
 import com.litmus7.employeemanager.util.EmployeeValidator;
+
 import java.io.File;
 import java.util.List;
 import java.util.AbstractMap.SimpleEntry;
@@ -34,6 +35,48 @@ public class EmployeeController {
         }
     }
 
+    public ResponseDTO<int[]> addEmployeesInBatch(List<EmployeeDTO> employeeList) {
+        if (employeeList == null || employeeList.isEmpty()) {
+            return ResponseDTO.failure("Employee list is empty or null.", 0, null);
+        }
+        
+        try {
+            int[] results = service.addEmployeesInBatch(employeeList);
+            int successfulInserts = 0;
+            for (int result : results) {
+                if (result == 1) {
+                    successfulInserts++;
+                }
+            }
+            return ResponseDTO.success("Batch insertion completed.", successfulInserts, results);
+        } catch (ServiceException e) {
+            return ResponseDTO.failure("A service error occurred during batch insertion: " + e.getMessage(), 0, null);
+        }
+    }
+    
+    // New method for transaction-based department transfer
+    public ResponseDTO<int[]> transferEmployeesToDepartment(List<Integer> employeeIds, String newDepartment) {
+        if (employeeIds == null || employeeIds.isEmpty()) {
+            return ResponseDTO.failure("No employee IDs provided.", 0, null);
+        }
+        if (newDepartment == null || newDepartment.trim().isEmpty()) {
+            return ResponseDTO.failure("New department cannot be null or empty.", 0, null);
+        }
+        
+        try {
+            int[] results = service.transferEmployeesToDepartment(employeeIds, newDepartment);
+            int successfulUpdates = 0;
+            for (int result : results) {
+                if (result == 1) {
+                    successfulUpdates++;
+                }
+            }
+            return ResponseDTO.success("Department transfer completed successfully.", successfulUpdates, results);
+        } catch (ServiceException e) {
+            return ResponseDTO.failure("Department transfer failed: " + e.getMessage(), 0, null);
+        }
+    }
+
     public ResponseDTO<List<String>> importEmployees(String filePath) {
         File csvFile = new File(filePath);
         if (!csvFile.exists() || csvFile.isDirectory()) {
@@ -53,7 +96,6 @@ public class EmployeeController {
         }
     }
     
-    // New method to get employees by a list of IDs
     public ResponseDTO<List<EmployeeDTO>> getEmployeesByIds(List<Integer> employeeIds) {
         if (employeeIds == null || employeeIds.isEmpty()) {
             return ResponseDTO.failure("No employee IDs provided.", 0, null);

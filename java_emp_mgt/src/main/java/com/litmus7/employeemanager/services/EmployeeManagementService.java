@@ -35,6 +35,33 @@ public class EmployeeManagementService {
         }
     }
 
+    public int[] addEmployeesInBatch(List<EmployeeDTO> employeeList) throws ServiceException {
+        if (employeeList == null || employeeList.isEmpty()) {
+            return new int[0];
+        }
+        try {
+            return employeeDao.addEmployeesInBatch(employeeList);
+        } catch (DAOException e) {
+            throw new ServiceException("A database error occurred during batch employee creation.", e);
+        }
+    }
+    
+    // New method for transaction-based department transfer in the service layer
+    public int[] transferEmployeesToDepartment(List<Integer> employeeIds, String newDepartment) throws ServiceException {
+        if (employeeIds == null || employeeIds.isEmpty()) {
+            return new int[0];
+        }
+        if (newDepartment == null || newDepartment.trim().isEmpty()) {
+            throw new ServiceException("New department cannot be null or empty.");
+        }
+        
+        try {
+            return employeeDao.transferEmployeesToDepartment(employeeIds, newDepartment);
+        } catch (DAOException e) {
+            throw new ServiceException("A database error occurred during department transfer. " + e.getMessage(), e);
+        }
+    }
+
     public SimpleEntry<Integer, List<String>> importEmployees(String filePath) throws ServiceException {
         int successfulEntries = 0;
         List<String> detailedErrorMessages = new ArrayList<>();
@@ -98,7 +125,6 @@ public class EmployeeManagementService {
         return new SimpleEntry<>(successfulEntries, detailedErrorMessages);
     }
     
-    // New method to get multiple employees by their IDs
     public List<EmployeeDTO> getEmployeesByIds(List<Integer> employeeIds) throws ServiceException {
         if (employeeIds == null || employeeIds.isEmpty()) {
             return Collections.emptyList();

@@ -6,6 +6,7 @@ import com.litmus7.employeemanager.dto.RecordProcessResult;
 import com.litmus7.employeemanager.exception.DAOException;
 import com.litmus7.employeemanager.util.DatabaseConnectionManager;
 import com.litmus7.employeemanager.util.EmployeeValidator;
+
 import java.sql.Connection;
 import java.sql.Date;
 import java.sql.PreparedStatement;
@@ -13,13 +14,12 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.time.LocalDate;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
-import java.util.Collections;
 
 public class EmployeeDao {
 
-    // Helper method to save an employee
     public int saveEmployee(EmployeeDTO employee) throws DAOException {
         try (Connection connection = DatabaseConnectionManager.getConnection();
              PreparedStatement insertStatement = connection.prepareStatement(SqlConstants.INSERT_EMPLOYEE)) {
@@ -42,6 +42,66 @@ public class EmployeeDao {
             throw new DAOException("Error saving employee " + employee.getEmployeeId(), e);
         }
     }
+    
+    // New method for transaction-based department transfer
+    public int[] transferEmployeesToDepartment(List<Integer> employeeIds, String newDepartment) throws DAOException {
+        if (employeeIds == null || employeeIds.isEmpty()) {
+            return new int[0];
+        }
+
+        try (Connection connection = DatabaseConnectionManager.getConnection()) {
+            connection.setAutoCommit(false); // Start the transaction
+            int[] updateCounts;
+
+            try (PreparedStatement preparedStatement = connection.prepareStatement(SqlConstants.UPDATE_EMPLOYEE_DEPARTMENT)) {
+                for (Integer id : employeeIds) {
+                    preparedStatement.setString(1, newDepartment);
+                    preparedStatement.setInt(2, id);
+                    preparedStatement.addBatch();
+                }
+                updateCounts = preparedStatement.executeBatch();
+                connection.commit(); // Commit all changes if successful
+            } catch (SQLException e) {
+                connection.rollback(); // Rollback all changes if an exception occurs
+                throw new DAOException("Error updating departments for employees. Transaction rolled back.", e);
+            }
+            return updateCounts;
+        } catch (SQLException e) {
+            throw new DAOException("Database connection or transaction error.", e);
+        }
+    }
+
+    public int[] addEmployeesInBatch(List<EmployeeDTO> employeeList) throws DAOException {
+        if (employeeList == null || employeeList.isEmpty()) {
+            return new int[0];
+        }
+
+        try (Connection connection = DatabaseConnectionManager.getConnection();
+             PreparedStatement preparedStatement = connection.prepareStatement(SqlConstants.INSERT_EMPLOYEE)) {
+            
+            for (EmployeeDTO employee : employeeList) {
+                preparedStatement.setInt(1, employee.getEmployeeId());
+                preparedStatement.setString(2, employee.getFirstName());
+                preparedStatement.setString(3, employee.getLastName());
+                preparedStatement.setString(4, employee.getEmail());
+                preparedStatement.setString(5, employee.getPhone());
+                preparedStatement.setString(6, employee.getDepartment());
+
+                if (employee.getSalary() != null) {
+                    preparedStatement.setDouble(7, employee.getSalary());
+                } else {
+                    preparedStatement.setNull(7, java.sql.Types.DOUBLE);
+                }
+                preparedStatement.setDate(8, Date.valueOf(employee.getJoinDate()));
+
+                preparedStatement.addBatch();
+            }
+            
+            return preparedStatement.executeBatch();
+        } catch (SQLException e) {
+            throw new DAOException("Error in batch insertion of employees", e);
+        }
+    }
 
     public boolean isEmployeeIdExists(int employeeId) throws DAOException {
         try (Connection connection = DatabaseConnectionManager.getConnection();
@@ -55,14 +115,12 @@ public class EmployeeDao {
         }
     }
     
-    // New method to find employees by a list of IDs
     public List<EmployeeDTO> findEmployeesByIds(List<Integer> employeeIds) throws DAOException {
         if (employeeIds == null || employeeIds.isEmpty()) {
             return Collections.emptyList();
         }
         
         List<EmployeeDTO> employees = new ArrayList<>();
-        // Dynamically build the SQL query with IN clause placeholders
         String placeholders = employeeIds.stream().map(id -> "?").collect(Collectors.joining(","));
         String sql = SqlConstants.FIND_EMPLOYEES_BY_IDS.replace("?", placeholders);
 
