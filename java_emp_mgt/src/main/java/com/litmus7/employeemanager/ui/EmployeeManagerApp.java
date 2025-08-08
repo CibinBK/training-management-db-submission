@@ -4,6 +4,9 @@ import com.litmus7.employeemanager.constant.AppConstants;
 import com.litmus7.employeemanager.controller.EmployeeController;
 import com.litmus7.employeemanager.dto.EmployeeDTO;
 import com.litmus7.employeemanager.dto.ResponseDTO;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+
 import java.time.LocalDate;
 import java.util.Arrays;
 import java.util.List;
@@ -11,9 +14,12 @@ import java.util.Scanner;
 import java.util.ArrayList;
 
 public class EmployeeManagerApp {
+    
+    private static final Logger logger = LogManager.getLogger(EmployeeManagerApp.class);
 
     public static void main(String[] args) {
-
+        logger.info("Application starting up.");
+        
         EmployeeController controller = new EmployeeController();
 
         // 1. IMPORT EMPLOYEES FROM CSV
@@ -21,8 +27,8 @@ public class EmployeeManagerApp {
         ResponseDTO<List<String>> importResponse = controller.importEmployees(AppConstants.CSV_FILE_PATH);
         printImportResponse(importResponse);
         
-        // 2. DIRECTLY ADD A NEW EMPLOYEE (Single)
-        System.out.println("\n----- Employee Addition (Single) -----");
+        // 2. ADD A NEW EMPLOYEE (Single)
+        System.out.println("\n----- New Employee Addition (Single) -----");
         EmployeeDTO newEmployee = new EmployeeDTO(
             111, "Peter", "Parker", "peter.parker@example.com", "1112223333",
             "IT", 60000.00, LocalDate.of(2023, 5, 20)
@@ -31,7 +37,7 @@ public class EmployeeManagerApp {
         System.out.println("Adding Employee ID " + newEmployee.getEmployeeId() + ": " + addResponse.getMessage());
 
         // 3. BATCH ADD MULTIPLE EMPLOYEES
-        System.out.println("\n----- Employee Addition (Batch) -----");
+        System.out.println("\n----- New Employee Addition (Batch) -----");
         List<EmployeeDTO> employeesToAdd = new ArrayList<>();
         employeesToAdd.add(new EmployeeDTO(112, "Diana", "Prince", "diana.prince@example.com", "1112224444", "Marketing", 75000.00, LocalDate.of(2023, 8, 1)));
         employeesToAdd.add(new EmployeeDTO(113, "Bruce", "Wayne", "bruce.wayne@example.com", "1112225555", "Engineering", 90000.00, LocalDate.of(2023, 8, 2)));
@@ -39,11 +45,11 @@ public class EmployeeManagerApp {
         ResponseDTO<int[]> batchResponse = controller.addEmployeesInBatch(employeesToAdd);
         printBatchResponse(batchResponse);
         
-        // 4. TRANSFER DEPARTMENT (TRANSACTION)
+        // 4. NEW LOGIC: TRANSFER DEPARTMENT (TRANSACTION)
         System.out.println("\n----- Department Transfer -----");
 
         // Successful Transfer
-        System.out.println("-> Attempting a successful transfer for IDs 101, 103 to 'New Dept'");
+        System.out.println("-> Attempting a successful transfer for IDs 101, 104 to 'New Dept'");
         List<Integer> successfulTransferIds = Arrays.asList(101, 103);
         ResponseDTO<int[]> transferResponseSuccess = controller.transferEmployeesToDepartment(successfulTransferIds, "New Dept");
         printBatchResponse(transferResponseSuccess);
@@ -56,7 +62,7 @@ public class EmployeeManagerApp {
         printEmployeeListResponse(fetchByIdsResponse);
 
         // 6. FETCH AND DELETE LOGIC
-        System.out.println("\n----- Demonstrating Fetch and Delete Logic -----");
+        System.out.println("\n----- Fetch and Delete Logic -----");
         
         // Fetch an existing employee (e.g., ID 101)
         int fetchId = 101;
@@ -104,6 +110,7 @@ public class EmployeeManagerApp {
         printEmployeeListResponse(fetchAllResponse);
         
         System.out.println("\nApplication: Program execution finished.");
+        logger.info("Application shutting down.");
     }
 
     private static void printImportResponse(ResponseDTO<List<String>> response) {
