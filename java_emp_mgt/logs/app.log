@@ -1,0 +1,46 @@
+2025-08-08 21:25:42.108 INFO  EmployeeManagerApp - Application starting up.
+2025-08-08 21:25:42.143 INFO  DatabaseProperties - Attempting to load database properties from file: database.properties
+2025-08-08 21:25:42.144 INFO  DatabaseProperties - Database properties loaded successfully.
+2025-08-08 21:25:42.758 INFO  EmployeeManagementService - Transaction started for CSV import.
+2025-08-08 21:25:42.760 INFO  EmployeeManagementService - CSV header skipped.
+2025-08-08 21:25:42.833 INFO  EmployeeDao - Successfully inserted employee with ID 101 from line 2.
+2025-08-08 21:25:42.856 INFO  EmployeeDao - Successfully inserted employee with ID 102 from line 3.
+2025-08-08 21:25:42.877 INFO  EmployeeDao - Successfully inserted employee with ID 103 from line 4.
+2025-08-08 21:25:42.898 INFO  EmployeeDao - Successfully inserted employee with ID 104 from line 5.
+2025-08-08 21:25:42.919 INFO  EmployeeDao - Successfully inserted employee with ID 105 from line 6.
+2025-08-08 21:25:42.942 INFO  EmployeeDao - Successfully inserted employee with ID 106 from line 7.
+2025-08-08 21:25:42.964 INFO  EmployeeDao - Successfully inserted employee with ID 107 from line 8.
+2025-08-08 21:25:42.986 INFO  EmployeeDao - Successfully inserted employee with ID 108 from line 9.
+2025-08-08 21:25:43.005 INFO  EmployeeDao - Successfully inserted employee with ID 109 from line 10.
+2025-08-08 21:25:43.024 INFO  EmployeeDao - Successfully inserted employee with ID 110 from line 11.
+2025-08-08 21:25:43.028 INFO  EmployeeManagementService - CSV import transaction committed successfully.
+2025-08-08 21:25:43.030 INFO  EmployeeController - CSV import finished. Total records: 10, Successful: 10, Failed: 0
+2025-08-08 21:25:43.082 INFO  EmployeeDao - Successfully saved employee with ID: 111
+2025-08-08 21:25:43.083 INFO  EmployeeManagementService - Employee with ID 111 added successfully.
+2025-08-08 21:25:43.084 INFO  EmployeeController - Successfully added employee with ID: 111. Rows affected: 1
+2025-08-08 21:25:43.111 INFO  EmployeeDao - Batch insertion completed. 2 statements executed.
+2025-08-08 21:25:43.111 INFO  EmployeeManagementService - Batch creation of 2 employees completed.
+2025-08-08 21:25:43.112 INFO  EmployeeController - Batch insertion completed. Successful inserts: 2 out of 2.
+2025-08-08 21:25:43.127 INFO  EmployeeDao - Transaction started for department transfer.
+2025-08-08 21:25:43.133 INFO  EmployeeDao - Transaction committed successfully for department transfer.
+2025-08-08 21:25:43.134 INFO  EmployeeManagementService - Department transfer for 2 employees completed.
+2025-08-08 21:25:43.135 INFO  EmployeeController - Department transfer completed. Successful updates: 2 out of 2
+2025-08-08 21:25:43.157 INFO  EmployeeDao - Found 2 employees for the given IDs.
+2025-08-08 21:25:43.158 INFO  EmployeeManagementService - Found 2 employees for the given IDs.
+2025-08-08 21:25:43.159 INFO  EmployeeController - Successfully fetched 2 employees for IDs: [101, 104]
+2025-08-08 21:25:43.178 INFO  EmployeeDao - Successfully found employee with ID: 101
+2025-08-08 21:25:43.179 INFO  EmployeeManagementService - Employee with ID 101 found.
+2025-08-08 21:25:43.179 INFO  EmployeeController - Successfully fetched employee with ID: 101
+2025-08-08 21:25:43.198 INFO  EmployeeDao - Deleted employee with ID 102. Rows affected: 1
+2025-08-08 21:25:43.199 INFO  EmployeeManagementService - Employee with ID 102 deleted successfully.
+2025-08-08 21:25:43.199 INFO  EmployeeController - Successfully deleted employee with ID: 102. Rows affected: 1
+2025-08-08 21:25:43.218 INFO  EmployeeDao - Updated employee with ID 999. Rows affected: 0
+2025-08-08 21:25:43.218 WARN  EmployeeManagementService - Employee with ID 999 not found for update.
+2025-08-08 21:25:43.219 INFO  EmployeeController - Update failed: Employee with ID 999 not found for update.
+2025-08-08 21:25:47.485 INFO  EmployeeDao - Successfully saved employee with ID: 999
+2025-08-08 21:25:47.486 INFO  EmployeeManagementService - Employee with ID 999 added successfully.
+2025-08-08 21:25:47.486 INFO  EmployeeController - Successfully added employee with ID: 999. Rows affected: 1
+2025-08-08 21:25:47.505 INFO  EmployeeDao - Found 13 total employees.
+2025-08-08 21:25:47.506 INFO  EmployeeManagementService - Successfully fetched all 13 employees.
+2025-08-08 21:25:47.506 INFO  EmployeeController - Successfully fetched all 13 employees.
+2025-08-08 21:25:47.512 INFO  EmployeeManagerApp - Application shutting down.
