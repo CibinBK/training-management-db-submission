@@ -1,0 +1,4 @@
+productId,productName,category,status,price ,attribute1,attribute2
+P101,Laptop,Electronics, AVAILABLE,55000,HP,12
+P102,T-Shirt,Clothing, DISCONTINUED,1200,M,Linen
+P103,Milk,Grocery, COMING_SOON,50,2025-08-20,1.0
