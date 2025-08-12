@@ -50,3 +50,40 @@ training-management-db-submission/
     |
     ├─ README.md
     └─ ...
+
+# retail-management-app
+    This project is a console-based application for managing the inventory of a retail store.
+
+## Folder Structure
+
+    training-management-db-submission/
+    │    
+    ├── java_retail_mgt/
+    │    ├── src/com/litmus7/retailmanager/
+    │    │   ├── constants/
+    │    │   │   └── FileConstants.java
+    │    │   ├── controller/        
+    │    │   │   └── ProductController.java        
+    │    │   ├── dao/        
+    │    │   │   └── ProductDAO.java        
+    │    │   ├── dto/        
+    │    │   │   ├── Clothing.java        
+    │    │   │   ├── Electronics.java        
+    │    │   │   ├── Grocery.java        
+    │    │   │   ├── Product.java        
+    │    │   │   ├── ProductResponse.java        
+    │    │   │   └── ProductStatus.java        
+    │    │   ├── exceptions/        
+    │    │   │   ├── FileOperationException.java        
+    │    │   │   ├── ProductNotFoundException.java        
+    │    │   │   └── ValidationException.java        
+    │    │   ├── service/        
+    │    │   │   └── ProductService.java        
+    │    │   ├── util/        
+    │    │   │   └── InputUtil.java        
+    │    │   └── ui/
+    │    │       └── RetailManagerApp.java 
+    │    └── inventory.txt
+    │
+    ├── README.md
+    └── ...
