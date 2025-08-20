@@ -2,15 +2,20 @@ package com.litmus7.retailmanager.service;
 
 import com.litmus7.retailmanager.dao.ProductDAO;
 import com.litmus7.retailmanager.dto.Product;
-import java.util.List;
+import com.litmus7.retailmanager.exceptions.ValidationException;
+import com.litmus7.retailmanager.util.ComparatorUtil;
+
 import java.util.Comparator;
+import java.util.List;
 
 public class ProductService {
+    private final ProductDAO productDAO = new ProductDAO();
 
-	private final ProductDAO productDAO = new ProductDAO();
     public void addProduct(Product product) {
         // Performs validation on the product (e.g., checks for negative price)
-        // Calls the ProductDAO to save the product
+        if (product.getPrice() < 0) {
+            throw new ValidationException("Product price cannot be negative.");
+        }
         productDAO.addProduct(product);
     }
 
@@ -24,11 +29,18 @@ public class ProductService {
         // Calls the ProductDAO to retrieve all products
         // Filters the list to return only products of the specified category
         List<Product> products = productDAO.viewAllProducts();
-        return null;
+        return null; 
     }
 
     public List<Product> sortProducts(List<Product> products, String sortOption) {
-        // Sorts the list of products based on the sort option using a Comparator
-        return null;
+        // Gets the appropriate comparator from ComparatorUtil
+        Comparator<Product> comparator = ComparatorUtil.getProductComparator(sortOption);
+        
+        
+        if (comparator != null) {
+        	// Sorts the list of products using the obtained comparator
+            // products.sort(comparator); // Call the sort method here
+        }
+        return products;
     }
 }
