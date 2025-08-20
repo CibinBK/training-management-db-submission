@@ -4,8 +4,7 @@ import com.litmus7.employeemanager.constant.AppConstants;
 import com.litmus7.employeemanager.controller.EmployeeController;
 import com.litmus7.employeemanager.dto.EmployeeDTO;
 import com.litmus7.employeemanager.dto.ResponseDTO;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
+import com.litmus7.employeemanager.util.ErrorCodesManager;
 
 import java.time.LocalDate;
 import java.util.Arrays;
@@ -14,12 +13,9 @@ import java.util.Scanner;
 import java.util.ArrayList;
 
 public class EmployeeManagerApp {
-    
-    private static final Logger logger = LogManager.getLogger(EmployeeManagerApp.class);
 
     public static void main(String[] args) {
-        logger.info("Application starting up.");
-        
+
         EmployeeController controller = new EmployeeController();
 
         // 1. IMPORT EMPLOYEES FROM CSV
@@ -27,17 +23,17 @@ public class EmployeeManagerApp {
         ResponseDTO<List<String>> importResponse = controller.importEmployees(AppConstants.CSV_FILE_PATH);
         printImportResponse(importResponse);
         
-        // 2. ADD A NEW EMPLOYEE (Single)
-        System.out.println("\n----- New Employee Addition (Single) -----");
+        // 2. ADD A NEW EMPLOYEE
+        System.out.println("\n----- Employee Addition (Single) -----");
         EmployeeDTO newEmployee = new EmployeeDTO(
             111, "Peter", "Parker", "peter.parker@example.com", "1112223333",
             "IT", 60000.00, LocalDate.of(2023, 5, 20)
         );
         ResponseDTO<Integer> addResponse = controller.addEmployee(newEmployee);
-        System.out.println("Adding Employee ID " + newEmployee.getEmployeeId() + ": " + addResponse.getMessage());
+        printAddResponse(addResponse, newEmployee.getEmployeeId());
 
-        // 3. BATCH ADD MULTIPLE EMPLOYEES
-        System.out.println("\n----- New Employee Addition (Batch) -----");
+        // 3. ADD MULTIPLE EMPLOYEES AS BATCH
+        System.out.println("\n----- Employee Addition (Batch) -----");
         List<EmployeeDTO> employeesToAdd = new ArrayList<>();
         employeesToAdd.add(new EmployeeDTO(112, "Diana", "Prince", "diana.prince@example.com", "1112224444", "Marketing", 75000.00, LocalDate.of(2023, 8, 1)));
         employeesToAdd.add(new EmployeeDTO(113, "Bruce", "Wayne", "bruce.wayne@example.com", "1112225555", "Engineering", 90000.00, LocalDate.of(2023, 8, 2)));
@@ -45,18 +41,17 @@ public class EmployeeManagerApp {
         ResponseDTO<int[]> batchResponse = controller.addEmployeesInBatch(employeesToAdd);
         printBatchResponse(batchResponse);
         
-        // 4. NEW LOGIC: TRANSFER DEPARTMENT (TRANSACTION)
-        System.out.println("\n----- Department Transfer -----");
+        // 4. TRANSFER DEPARTMENT
+        System.out.println("\n----- Transaction-based Department Transfer -----");
 
-        // Successful Transfer
         System.out.println("-> Attempting a successful transfer for IDs 101, 104 to 'New Dept'");
-        List<Integer> successfulTransferIds = Arrays.asList(101, 103);
+        List<Integer> successfulTransferIds = Arrays.asList(101, 104);
         ResponseDTO<int[]> transferResponseSuccess = controller.transferEmployeesToDepartment(successfulTransferIds, "New Dept");
         printBatchResponse(transferResponseSuccess);
 
 
         // 5. FETCH MULTIPLE EMPLOYEES
-        System.out.println("\n----- Fetching Multiple Employees (IDs 101, 104) -----");
+        System.out.println("\n----- Fetching Multiple Employees -----");
         List<Integer> idsToFetch = Arrays.asList(101, 104);
         ResponseDTO<List<EmployeeDTO>> fetchByIdsResponse = controller.getEmployeesByIds(idsToFetch);
         printEmployeeListResponse(fetchByIdsResponse);
@@ -64,12 +59,10 @@ public class EmployeeManagerApp {
         // 6. FETCH AND DELETE LOGIC
         System.out.println("\n----- Fetch and Delete Logic -----");
         
-        // Fetch an existing employee (e.g., ID 101)
         int fetchId = 101;
         ResponseDTO<EmployeeDTO> fetchResponse = controller.getEmployeeById(fetchId);
         System.out.println("Fetching Employee ID " + fetchId + ": " + fetchResponse.getMessage());
 
-        // Delete an existing employee (e.g., ID 102)
         int deleteId = 102;
         ResponseDTO<Integer> deleteResponse = controller.deleteEmployee(deleteId);
         System.out.println("Deleting Employee ID " + deleteId + ": " + deleteResponse.getMessage());
@@ -78,14 +71,14 @@ public class EmployeeManagerApp {
         System.out.println("\n----- Update Logic -----");
         try (Scanner scanner = new Scanner(System.in)) {
             EmployeeDTO nonExistentEmployee = new EmployeeDTO(
-                999, "Dean", "Jacob", "dean.jacob@example.com", "1234567890",
+                999, "New", "Employee", "new.employee@example.com", "1234567890",
                 "IT", 55000.00, LocalDate.of(2025, 1, 1)
             );
             
             ResponseDTO<Integer> updateResponse = controller.updateEmployee(nonExistentEmployee);
             
             if (updateResponse.isFailure()) {
-                System.out.println(updateResponse.getMessage());
+                printFailureDetails(updateResponse);
                 System.out.print("This employee does not exist. Do you want to add them? (yes/no): ");
                 String userResponse = scanner.nextLine().trim();
                 
@@ -110,7 +103,19 @@ public class EmployeeManagerApp {
         printEmployeeListResponse(fetchAllResponse);
         
         System.out.println("\nApplication: Program execution finished.");
-        logger.info("Application shutting down.");
+    }
+    
+    private static void printFailureDetails(ResponseDTO<?> response) {
+        String userMessage = ErrorCodesManager.getErrorMessage(response.getErrorCode(), response.getMessage());
+        System.err.println("Operation Failed: " + userMessage);
+    }
+    
+    private static void printAddResponse(ResponseDTO<Integer> response, int empId) {
+        if (response.isSuccess()) {
+            System.out.println("Adding Employee ID " + empId + ": " + response.getMessage());
+        } else {
+            printFailureDetails(response);
+        }
     }
 
     private static void printImportResponse(ResponseDTO<List<String>> response) {
@@ -127,7 +132,7 @@ public class EmployeeManagerApp {
                 }
             }
         } else {
-            System.err.println("Import Failed: " + response.getMessage());
+            printFailureDetails(response);
             System.err.println("Failure Details:");
             if (response.getData() != null && !response.getData().isEmpty()) {
                 for (String error : response.getData()) {
@@ -142,7 +147,7 @@ public class EmployeeManagerApp {
             System.out.println("Status: " + response.getMessage());
             System.out.println("Successful updates/inserts: " + response.getAffectedCount());
         } else {
-            System.err.println("Batch operation failed: " + response.getMessage());
+            printFailureDetails(response);
         }
     }
 
@@ -172,7 +177,7 @@ public class EmployeeManagerApp {
                 System.out.println("No employees found.");
             }
         } else {
-            System.err.println("Fetch Failed: " + response.getMessage());
+            printFailureDetails(response);
         }
     }
 }
