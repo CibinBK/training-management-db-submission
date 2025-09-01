@@ -5,10 +5,6 @@ import com.litmus7.inventorymanager.dto.Response;
 import java.io.File;
 import java.util.Queue;
 
-/**
- * A Runnable task to process a single file in a separate thread.
- * It uses the InventoryProcessingService's core logic.
- */
 public class FileProcessorTask implements Runnable {
 
     private final File file;

@@ -11,10 +11,6 @@ import java.util.List;
 import java.util.Queue;
 import java.util.concurrent.ConcurrentLinkedQueue;
 
-/**
- * Controller class to manage the flow of the inventory feed process.
- * Now configured for Phase 2: one thread per file, with shared memory for counts.
- */
 public class InventoryController {
 
     private final FileHandler fileHandler;
@@ -25,12 +21,6 @@ public class InventoryController {
         this.inventoryProcessingService = new InventoryProcessingService();
     }
 
-    /**
-     * Starts the multithreaded inventory processing task.
-     * It creates a new thread for each file and waits for them to complete.
-     *
-     * @return a Response object summarizing the outcome of the processing.
-     */
     public Response startProcessing() {
         System.out.println("Controller: Starting multithreaded inventory processing...");
         
