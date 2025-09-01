@@ -1,0 +1,84 @@
+2025-09-02 00:49:46.797 INFO  InventoryManagerApp - Starting Inventory Feed Processing (Phase 3)...
+2025-09-02 00:49:46.816 INFO  InventoryProcessingService - Processing started for file: input3.csv
+2025-09-02 00:49:46.816 INFO  InventoryProcessingService - Processing started for file: input2.csv
+2025-09-02 00:49:46.816 INFO  InventoryProcessingService - Processing started for file: input1.csv
+2025-09-02 00:49:46.816 INFO  InventoryProcessingService - Processing started for file: input4.csv
+2025-09-02 00:49:46.816 INFO  InventoryProcessingService - Processing started for file: input5.csv
+2025-09-02 00:49:47.137 ERROR InventoryProcessingService - Error processing file input3.csv: null - Invalid record format in file: input3.csv, line: 302,Widget H,25,
+com.litmus7.inventorymanager.exception.FileProcessingException: Invalid record format in file: input3.csv, line: 302,Widget H,25,
+	at com.litmus7.inventorymanager.util.CsvReader.read(CsvReader.java:38) ~[classes/:?]
+	at com.litmus7.inventorymanager.service.InventoryProcessingService.processSingleFile(InventoryProcessingService.java:73) [classes/:?]
+	at com.litmus7.inventorymanager.service.FileProcessorTask.run(FileProcessorTask.java:23) [classes/:?]
+	at java.util.concurrent.Executors$RunnableAdapter.call(Executors.java:511) [?:1.8.0_45]
+	at java.util.concurrent.FutureTask.run(FutureTask.java:266) [?:1.8.0_45]
+	at java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1142) [?:1.8.0_45]
+	at java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:617) [?:1.8.0_45]
+	at java.lang.Thread.run(Thread.java:745) [?:1.8.0_45]
+2025-09-02 00:49:47.141 INFO  InventoryProcessingService - Transaction for input3.csv rolled back.
+2025-09-02 00:49:47.142 INFO  FileHandler - File moved: input3.csv -> inventory-feed/error
+2025-09-02 00:49:47.144 INFO  InventoryProcessingService - Processing started for file: input6.csv
+2025-09-02 00:49:47.163 INFO  FileHandler - File moved: input5.csv -> inventory-feed/processed
+2025-09-02 00:49:47.163 INFO  InventoryProcessingService - Successfully processed and committed file: input5.csv
+2025-09-02 00:49:47.164 INFO  InventoryProcessingService - Processing started for file: input7.csv
+2025-09-02 00:49:47.166 INFO  FileHandler - File moved: input4.csv -> inventory-feed/processed
+2025-09-02 00:49:47.166 INFO  FileHandler - File moved: input1.csv -> inventory-feed/processed
+2025-09-02 00:49:47.166 INFO  InventoryProcessingService - Successfully processed and committed file: input4.csv
+2025-09-02 00:49:47.166 INFO  InventoryProcessingService - Successfully processed and committed file: input1.csv
+2025-09-02 00:49:47.166 ERROR InventoryProcessingService - Error processing file input6.csv: null - Invalid number format in file: input6.csv, line: 301,Widget K,ABC,12.5
+com.litmus7.inventorymanager.exception.FileProcessingException: Invalid number format in file: input6.csv, line: 301,Widget K,ABC,12.5
+	at com.litmus7.inventorymanager.util.CsvReader.read(CsvReader.java:47) ~[classes/:?]
+	at com.litmus7.inventorymanager.service.InventoryProcessingService.processSingleFile(InventoryProcessingService.java:73) [classes/:?]
+	at com.litmus7.inventorymanager.service.FileProcessorTask.run(FileProcessorTask.java:23) [classes/:?]
+	at java.util.concurrent.Executors$RunnableAdapter.call(Executors.java:511) [?:1.8.0_45]
+	at java.util.concurrent.FutureTask.run(FutureTask.java:266) [?:1.8.0_45]
+	at java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1142) [?:1.8.0_45]
+	at java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:617) [?:1.8.0_45]
+	at java.lang.Thread.run(Thread.java:745) [?:1.8.0_45]
+Caused by: java.lang.NumberFormatException: For input string: "ABC"
+	at java.lang.NumberFormatException.forInputString(NumberFormatException.java:65) ~[?:1.8.0_45]
+	at java.lang.Integer.parseInt(Integer.java:580) ~[?:1.8.0_45]
+	at java.lang.Integer.parseInt(Integer.java:615) ~[?:1.8.0_45]
+	at com.litmus7.inventorymanager.util.CsvReader.read(CsvReader.java:43) ~[classes/:?]
+	... 7 more
+2025-09-02 00:49:47.166 INFO  InventoryProcessingService - Transaction for input6.csv rolled back.
+2025-09-02 00:49:47.167 INFO  FileHandler - File moved: input6.csv -> inventory-feed/error
+2025-09-02 00:49:47.171 ERROR InventoryProcessingService - Error processing file input2.csv: 302 - Failed to execute database operation. for SKU: 201
+com.litmus7.inventorymanager.exception.DatabaseOperationException: Failed to execute database operation. for SKU: 201
+	at com.litmus7.inventorymanager.dao.InventoryDAO.insertRecord(InventoryDAO.java:24) ~[classes/:?]
+	at com.litmus7.inventorymanager.service.InventoryProcessingService.processSingleFile(InventoryProcessingService.java:76) [classes/:?]
+	at com.litmus7.inventorymanager.service.FileProcessorTask.run(FileProcessorTask.java:23) [classes/:?]
+	at java.util.concurrent.Executors$RunnableAdapter.call(Executors.java:511) [?:1.8.0_45]
+	at java.util.concurrent.FutureTask.run(FutureTask.java:266) [?:1.8.0_45]
+	at java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1142) [?:1.8.0_45]
+	at java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:617) [?:1.8.0_45]
+	at java.lang.Thread.run(Thread.java:745) [?:1.8.0_45]
+Caused by: java.sql.SQLIntegrityConstraintViolationException: Duplicate entry '201' for key 'inventory.PRIMARY'
+	at com.mysql.cj.jdbc.exceptions.SQLError.createSQLException(SQLError.java:117) ~[mysql-connector-java-8.0.28.jar:8.0.28]
+	at com.mysql.cj.jdbc.exceptions.SQLExceptionsMapping.translateException(SQLExceptionsMapping.java:122) ~[mysql-connector-java-8.0.28.jar:8.0.28]
+	at com.mysql.cj.jdbc.ClientPreparedStatement.executeInternal(ClientPreparedStatement.java:953) ~[mysql-connector-java-8.0.28.jar:8.0.28]
+	at com.mysql.cj.jdbc.ClientPreparedStatement.executeUpdateInternal(ClientPreparedStatement.java:1098) ~[mysql-connector-java-8.0.28.jar:8.0.28]
+	at com.mysql.cj.jdbc.ClientPreparedStatement.executeUpdateInternal(ClientPreparedStatement.java:1046) ~[mysql-connector-java-8.0.28.jar:8.0.28]
+	at com.mysql.cj.jdbc.ClientPreparedStatement.executeLargeUpdate(ClientPreparedStatement.java:1371) ~[mysql-connector-java-8.0.28.jar:8.0.28]
+	at com.mysql.cj.jdbc.ClientPreparedStatement.executeUpdate(ClientPreparedStatement.java:1031) ~[mysql-connector-java-8.0.28.jar:8.0.28]
+	at com.litmus7.inventorymanager.dao.InventoryDAO.insertRecord(InventoryDAO.java:20) ~[classes/:?]
+	... 7 more
+2025-09-02 00:49:47.171 INFO  InventoryProcessingService - Transaction for input2.csv rolled back.
+2025-09-02 00:49:47.172 INFO  FileHandler - File moved: input2.csv -> inventory-feed/error
+2025-09-02 00:49:47.178 ERROR InventoryProcessingService - Error processing file input7.csv: 202 - Data failed business validation rules. (Price <= 0) for record with SKU: 401
+com.litmus7.inventorymanager.exception.ValidationException: Data failed business validation rules. (Price <= 0) for record with SKU: 401
+	at com.litmus7.inventorymanager.util.InventoryValidator.validate(InventoryValidator.java:26) ~[classes/:?]
+	at com.litmus7.inventorymanager.service.InventoryProcessingService.processSingleFile(InventoryProcessingService.java:75) [classes/:?]
+	at com.litmus7.inventorymanager.service.FileProcessorTask.run(FileProcessorTask.java:23) [classes/:?]
+	at java.util.concurrent.Executors$RunnableAdapter.call(Executors.java:511) [?:1.8.0_45]
+	at java.util.concurrent.FutureTask.run(FutureTask.java:266) [?:1.8.0_45]
+	at java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1142) [?:1.8.0_45]
+	at java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:617) [?:1.8.0_45]
+	at java.lang.Thread.run(Thread.java:745) [?:1.8.0_45]
+2025-09-02 00:49:47.178 INFO  InventoryProcessingService - Transaction for input7.csv rolled back.
+2025-09-02 00:49:47.179 INFO  FileHandler - File moved: input7.csv -> inventory-feed/error
+2025-09-02 00:49:47.180 ERROR InventoryManagerApp - Inventory processing failed: Thread pool processing completed with errors.
+2025-09-02 00:49:47.180 INFO  InventoryManagerApp - --- Processing Summary ---
+2025-09-02 00:49:47.180 INFO  InventoryManagerApp - Total files processed: 7
+2025-09-02 00:49:47.180 INFO  InventoryManagerApp - Successful files: 3
+2025-09-02 00:49:47.180 INFO  InventoryManagerApp - Error files: 4
+2025-09-02 00:49:47.180 INFO  InventoryManagerApp - Application shutdown.
